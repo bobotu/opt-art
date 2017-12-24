@@ -354,12 +354,12 @@ func loadTestData(file string, b *testing.B) (data [][]byte) {
 
 func benchPut(file string, b *testing.B) {
 	b.Helper()
-	art := NewART()
 	data := loadTestData(file, b)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		for _, d := range data {
+			art := NewART()
 			art.Put(d, d)
 		}
 	}
