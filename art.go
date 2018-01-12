@@ -27,13 +27,13 @@ func NewART() *ART {
 	}
 }
 
-// Get lookup this tree, and return the value associate with the given key, or return nil if not found.
+// Get lookup this tree, and return the value associate with the given key.
 // This operation is thread safe.
-func (t *ART) Get(key []byte) interface{} {
+func (t *ART) Get(key []byte) (interface{}, bool) {
 	for {
 		n := (*node)(atomic.LoadPointer(&t.root))
-		if value, ok := n.searchOpt(key, 0, nil, 0); ok {
-			return value
+		if value, ex, ok := n.searchOpt(key, 0, nil, 0); ok {
+			return value, ex
 		}
 	}
 }

@@ -52,7 +52,7 @@ func (n *node) findChild(key byte) (child *node, nodeLoc *unsafe.Pointer, positi
 	return nil, nil, 0
 }
 
-func (n *node) searchOpt(key []byte, depth int, parent *node, parentVersion uint64) (interface{}, bool) {
+func (n *node) searchOpt(key []byte, depth int, parent *node, parentVersion uint64) (interface{}, bool, bool) {
 	var (
 		version uint64
 		ok      bool
@@ -60,17 +60,17 @@ func (n *node) searchOpt(key []byte, depth int, parent *node, parentVersion uint
 
 RECUR:
 	if version, ok = n.rLock(); !ok {
-		return nil, false
+		return nil, false, false
 	}
 	if !parent.rUnlock(parentVersion) {
-		return nil, false
+		return nil, false, false
 	}
 
 	if n.checkPrefix(key, depth) != min(n.prefixLen, maxPrefixLen) {
 		if !n.rUnlock(version) {
-			return nil, false
+			return nil, false, false
 		}
-		return nil, true
+		return nil, false, true
 	}
 	depth += n.prefixLen
 
@@ -81,25 +81,25 @@ RECUR:
 			value = l.value
 		}
 		if !n.rUnlock(version) {
-			return nil, false
+			return nil, false, false
 		}
-		return value, true
+		return value, true, true
 	}
 
 	if depth > len(key) {
-		return nil, n.rUnlock(version)
+		return nil, false, n.rUnlock(version)
 	}
 
 	nextNode, _, _ := n.findChild(key[depth])
 	if !n.lockCheck(version) {
-		return nil, false
+		return nil, false, false
 	}
 
 	if nextNode == nil {
 		if !n.rUnlock(version) {
-			return nil, false
+			return nil, false, false
 		}
-		return nil, true
+		return nil, false, true
 	}
 
 	if nextNode.nodeType == typeLeaf {
@@ -109,9 +109,9 @@ RECUR:
 			value = l.value
 		}
 		if !n.rUnlock(version) {
-			return nil, false
+			return nil, false, false
 		}
-		return value, true
+		return value, true, true
 	}
 
 	depth += 1
