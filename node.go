@@ -53,7 +53,7 @@ func (n *node) isFull() bool {
 		return false
 	}
 
-	panic("imodb/art: unreachable code")
+	panic("opt-art: unreachable code")
 }
 
 type node4 struct {

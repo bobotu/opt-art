@@ -16,7 +16,7 @@ func (n *node) insertChild(key byte, child unsafe.Pointer) {
 	case typeNode256:
 		(*node256)(unsafe.Pointer(n)).insertChild(key, child)
 	default:
-		panic("imodb/art: unreachable code")
+		panic("opt-art: unreachable code")
 	}
 }
 
@@ -71,7 +71,7 @@ func (n *node) growAndInsert(key byte, child unsafe.Pointer, nodeLoc *unsafe.Poi
 	case typeNode256:
 		(*node256)(unsafe.Pointer(n)).growAndInsert(key, child, nodeLoc)
 	default:
-		panic("imodb/art: unreachable code")
+		panic("opt-art: unreachable code")
 	}
 }
 
@@ -213,7 +213,7 @@ func (n *node) shouldShrink(parent *node) bool {
 		// so 0 simply means 256.
 		return n.numChildren > 0 && n.numChildren <= node256MinSize
 	default:
-		panic("imodb/art: unreachable code.")
+		panic("opt-art: unreachable code.")
 	}
 }
 
@@ -228,7 +228,7 @@ func (n *node) removeChildAndShrink(key byte, nodeLoc *unsafe.Pointer) bool {
 	case typeNode256:
 		return (*node256)(unsafe.Pointer(n)).removeChildAndShrink(key, nodeLoc)
 	default:
-		panic("imodb/art: unreachable code")
+		panic("opt-art: unreachable code")
 	}
 }
 
@@ -244,7 +244,7 @@ func (n *node4) removeChildAndShrink(key byte, nodeLoc *unsafe.Pointer) bool {
 		}
 	}
 
-	panic("imodb/art: unreachable code.")
+	panic("opt-art: unreachable code.")
 }
 
 func (n *node4) compressChild(idx int, nodeLoc *unsafe.Pointer) bool {

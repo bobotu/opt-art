@@ -95,16 +95,14 @@ func (n *node) iterOpt(it *iterator, depth int, parent *node, parentVersion uint
 		if beginCmp, ok = n.fullCompare(version, it.getBegin(), depth); !ok {
 			return false, false
 		}
-	}
-	if beginCmp < 0 {
+	} else if beginCmp < 0 {
 		return false, true
 	}
 	if endCmp == 0 {
 		if endCmp, ok = n.fullCompare(version, it.getEnd(), depth); !ok {
 			return false, false
 		}
-	}
-	if endCmp > 0 {
+	} else if endCmp > 0 {
 		return true, true
 	}
 	depth += n.prefixLen
@@ -159,7 +157,7 @@ func (n *node) iterChild(it *iterator, version uint64, depth, beginCmp, endCmp i
 		n256 := (*node256)(unsafe.Pointer(n))
 		return n256.iterChild(it, version, depth, beginCmp, endCmp)
 	default:
-		panic("imodb/art: unreachable code")
+		panic("opt-art: unreachable code")
 	}
 }
 
@@ -347,7 +345,7 @@ func (n *node) firstChild() *node {
 			}
 		}
 	}
-	panic("imodb/art: unreachable code.")
+	panic("opt-art: unreachable code.")
 }
 
 func (n *node) minimalOpt(parent *node, parentVersion uint64) ([]byte, interface{}, bool) {
@@ -423,7 +421,7 @@ func (n *node) lastChild() *node {
 			}
 		}
 	}
-	panic("imodb/art: unreachable code.")
+	panic("opt-art: unreachable code.")
 }
 
 func (n *node) maximalOpt(parent *node, parentVersion uint64) ([]byte, interface{}, bool) {
