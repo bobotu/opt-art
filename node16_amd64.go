@@ -2,22 +2,22 @@
 
 package art
 
-var useSSE2 bool
+var useAVX2 bool
 
 func init() {
-	useSSE2 = supportSSE2()
+	useAVX2 = supportAVX2()
 }
 
 //go:noescape
-func node16FindChildASM(keys *byte, key byte) uint16
+func node16FindChildAVX2(keys *byte, key byte, nc uint8) uint8
 
 //go:noescape
-func supportSSE2() bool
+func supportAVX2() bool
 
-func (n *node16) findChild(key byte) uint16 {
-	if useSSE2 {
-		var mask uint16 = (1 << n.numChildren) - 1
-		return node16FindChildASM(&n.keys[0], key) & mask
+func (n *node16) findChild(key byte) uint8 {
+	if useAVX2 {
+		i := node16FindChildAVX2(&n.keys[0], key, n.numChildren)
+		return i
 	}
 	return n.findChildLinear(key)
 }

@@ -2,6 +2,6 @@
 
 package art
 
-func (n *node16) findChild(key byte) uint16 {
+func (n *node16) findChild(key byte) uint8 {
 	return n.findChildLinear(key)
 }

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	typeNode4 = iota
+	typeNode4   = iota
 	typeNode16
 	typeNode48
 	typeNode256
@@ -80,16 +80,16 @@ func newNode16() *node16 {
 	return n
 }
 
-func (n *node16) findChildLinear(key byte) uint16 {
+func (n *node16) findChildLinear(key byte) uint8 {
 	// As measured in MassTree's paper, linear search may have better performance
 	// than binary search on modern CPU.
 	var i uint8
 	for i = 0; i < n.numChildren; i++ {
 		if n.keys[i] == key {
-			return 1 << i
+			return i
 		}
 	}
-	return 0
+	return i
 }
 
 const (

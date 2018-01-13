@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"math/bits"
 )
 
 func (t *ART) get(key []byte) interface{} {
@@ -23,8 +22,9 @@ func TestNode16Find(t *testing.T) {
 	n16.numChildren = 6
 	for i := 0; i < int(n16.numChildren); i++ {
 		result := n16.findChild(n16.keys[i])
-		assert.EqualValues(i, bits.TrailingZeros16(result))
+		assert.EqualValues(i, result)
 	}
+	assert.EqualValues(n16.numChildren, n16.findChild(11))
 }
 
 func TestSimpleCRUD(t *testing.T) {

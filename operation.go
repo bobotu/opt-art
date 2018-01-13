@@ -1,7 +1,6 @@
 package art
 
 import (
-	"math/bits"
 	"sync/atomic"
 	"unsafe"
 )
@@ -32,10 +31,8 @@ func (n *node) findChild(key byte) (child *node, nodeLoc *unsafe.Pointer, positi
 		}
 	case typeNode16:
 		n16 := (*node16)(unsafe.Pointer(n))
-		result := n16.findChild(key)
-		if result != 0 {
-			i := bits.TrailingZeros16(result)
-			return (*node)(n16.children[i]), &n16.children[i], i
+		if i := n16.findChild(key); i < n.numChildren {
+			return (*node)(n16.children[i]), &n16.children[i], int(i)
 		}
 	case typeNode48:
 		n48 := (*node48)(unsafe.Pointer(n))
