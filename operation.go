@@ -1,6 +1,7 @@
 package art
 
 import (
+	"math/bits"
 	"sync/atomic"
 	"unsafe"
 )
@@ -30,13 +31,11 @@ func (n *node) findChild(key byte) (child *node, nodeLoc *unsafe.Pointer, positi
 			}
 		}
 	case typeNode16:
-		// As measured in MassTree's paper, linear search may have better performance
-		// than binary search on modern CPU.
 		n16 := (*node16)(unsafe.Pointer(n))
-		for i := 0; i < int(n16.numChildren); i++ {
-			if n16.keys[i] == key {
-				return (*node)(n16.children[i]), &n16.children[i], i
-			}
+		result := n16.findChild(key)
+		if result != 0 {
+			i := bits.TrailingZeros16(result)
+			return (*node)(n16.children[i]), &n16.children[i], i
 		}
 	case typeNode48:
 		n48 := (*node48)(unsafe.Pointer(n))
