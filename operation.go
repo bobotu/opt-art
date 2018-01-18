@@ -76,14 +76,18 @@ RECUR:
 
 	if depth == len(key) {
 		l := (*leaf)(atomic.LoadPointer(&n.prefixLeaf))
-		var value interface{}
+		var (
+			value interface{}
+			ex    bool
+		)
 		if l != nil && l.match(key) {
 			value = l.value
+			ex = true
 		}
 		if !n.rUnlock(version) {
 			return nil, false, false
 		}
-		return value, true, true
+		return value, ex, true
 	}
 
 	if depth > len(key) {
@@ -104,14 +108,18 @@ RECUR:
 
 	if nextNode.nodeType == typeLeaf {
 		l := (*leaf)(unsafe.Pointer(nextNode))
-		var value interface{}
+		var (
+			value interface{}
+			ex    bool
+		)
 		if l.match(key) {
 			value = l.value
+			ex = true
 		}
 		if !n.rUnlock(version) {
 			return nil, false, false
 		}
-		return value, true, true
+		return value, ex, true
 	}
 
 	depth += 1

@@ -11,28 +11,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func (t *ART) get(key []byte) interface{} {
-	v, _ := t.Get(key)
+type testART struct {
+	*ART
+	t *testing.T
+}
+
+func newART(t *testing.T) testART {
+	return testART{NewART(), t}
+}
+
+func (ta *testART) Get(key []byte) interface{} {
+	v, ok := ta.ART.Get(key)
+	if v == nil {
+		assert.False(ta.t, ok)
+	} else {
+		assert.True(ta.t, ok)
+	}
 	return v
 }
 
 func TestSimpleCRUD(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 
 	art.Put([]byte("hello"), "world")
-	assert.Equal("world", art.get([]byte("hello")))
+	assert.Equal("world", art.Get([]byte("hello")))
 
 	art.Delete([]byte("hello false"))
-	assert.Equal("world", art.get([]byte("hello")))
+	assert.Equal("world", art.Get([]byte("hello")))
 
 	art.Delete([]byte("hello"))
-	assert.Nil(art.get([]byte("hello")))
+	assert.Nil(art.Get([]byte("hello")))
 }
 
 func TestPrefixInsert(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 	testCase := []struct {
 		key   []byte
 		value interface{}
@@ -56,40 +70,40 @@ func TestPrefixInsert(t *testing.T) {
 	}
 
 	for _, c := range testCase {
-		assert.Equal(c.value, art.get(c.key))
+		assert.Equal(c.value, art.Get(c.key))
 	}
 }
 
 func TestEmptyKey(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 
 	art.Put([]byte{}, "empty")
-	assert.Equal("empty", art.get([]byte{}))
+	assert.Equal("empty", art.Get([]byte{}))
 
 	art.Put(nil, "nil")
-	assert.Equal("nil", art.get(nil))
-	assert.Equal("nil", art.get([]byte{}))
+	assert.Equal("nil", art.Get(nil))
+	assert.Equal("nil", art.Get([]byte{}))
 }
 
 func TestNotFound(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 
-	assert.Nil(art.get(nil))
-	assert.Nil(art.get([]byte{1, 2, 3}))
+	assert.Nil(art.Get(nil))
+	assert.Nil(art.Get([]byte{1, 2, 3}))
 
 	art.Put([]byte{1, 2}, "1 2")
-	assert.Nil(art.get([]byte{1, 2, 3}))
+	assert.Nil(art.Get([]byte{1, 2, 3}))
 
 	art.Put([]byte{2, 3, 4, 5}, "2 3 4 5")
-	assert.Nil(art.get([]byte{2, 3, 6}))
-	assert.Nil(art.get([]byte{2, 3}))
+	assert.Nil(art.Get([]byte{2, 3, 6}))
+	assert.Nil(art.Get([]byte{2, 3}))
 }
 
 func TestExpandLeaf(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 	testCase := []struct {
 		key   []byte
 		value interface{}
@@ -110,13 +124,13 @@ func TestExpandLeaf(t *testing.T) {
 	}
 
 	for _, c := range testCase {
-		assert.Equal(c.value, art.get(c.key))
+		assert.Equal(c.value, art.Get(c.key))
 	}
 }
 
 func TestCompressPath(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 
 	art.Put([]byte{2, 1}, "21")
 	art.Put([]byte{1, 2}, "12")
@@ -128,17 +142,17 @@ func TestCompressPath(t *testing.T) {
 	art.Delete([]byte{1, 2, 3, 7})
 	art.Delete([]byte{1, 2, 5})
 
-	assert.Equal("12345", art.get([]byte{1, 2, 3, 4, 5}))
-	assert.Equal("12346", art.get([]byte{1, 2, 3, 4, 6}))
+	assert.Equal("12345", art.Get([]byte{1, 2, 3, 4, 5}))
+	assert.Equal("12346", art.Get([]byte{1, 2, 3, 4, 6}))
 
 	art.Delete([]byte{2, 1})
-	assert.Equal("12", art.get([]byte{1, 2}))
+	assert.Equal("12", art.Get([]byte{1, 2}))
 
 	art.Delete([]byte{1, 2, 3, 4, 5})
-	assert.Equal("12346", art.get([]byte{1, 2, 3, 4, 6}))
+	assert.Equal("12346", art.Get([]byte{1, 2, 3, 4, 6}))
 
 	art.Delete([]byte{1, 2})
-	assert.Nil(art.get([]byte{1, 2}))
+	assert.Nil(art.Get([]byte{1, 2}))
 
 	root := (*node4)(art.root)
 	leaf := (*leaf)(root.children[0])
@@ -149,7 +163,7 @@ func TestCompressPath(t *testing.T) {
 
 func TestShrink(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 
 	for i := 0; i < 256; i++ {
 		art.Put([]byte{byte(i)}, i)
@@ -181,19 +195,19 @@ func TestShrink(t *testing.T) {
 
 func TestUpdateValue(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 
 	art.Put([]byte("12"), "12")
 	art.Put([]byte("12"), "12 new")
-	assert.Equal("12 new", art.get([]byte("12")))
+	assert.Equal("12 new", art.Get([]byte("12")))
 	art.Put([]byte("123"), "123")
 	art.Put([]byte("12"), "12 new2")
-	assert.Equal("12 new2", art.get([]byte("12")))
+	assert.Equal("12 new2", art.Get([]byte("12")))
 }
 
 func TestGrowNode(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 
 	var testCase []struct {
 		key   []byte
@@ -219,29 +233,29 @@ func TestGrowNode(t *testing.T) {
 		art.Put(c.key, c.value)
 	}
 	for _, c := range testCase {
-		assert.Equal(c.value, art.get(c.key))
+		assert.Equal(c.value, art.Get(c.key))
 	}
 }
 
 func TestLargeFile(t *testing.T) {
 	assert := assert.New(t)
-	art := NewART()
+	art := newART(t)
 	words := loadTestData("words.txt", nil)
 
 	for _, d := range words {
 		art.Put(d, d)
 	}
 	for _, d := range words {
-		assert.Equal(d, art.get(d))
+		assert.Equal(d, art.Get(d))
 	}
 
-	art = NewART()
+	art = newART(t)
 	uuid := loadTestData("uuid.txt", nil)
 	for _, d := range uuid {
 		art.Put(d, d)
 	}
 	for _, d := range uuid {
-		assert.Equal(d, art.get(d))
+		assert.Equal(d, art.Get(d))
 	}
 }
 
@@ -252,7 +266,7 @@ func TestConcurrentPut(t *testing.T) {
 
 	for count := 0; count < 10; count++ {
 		var wg, start sync.WaitGroup
-		art := NewART()
+		art := newART(t)
 		start.Add(1)
 		for i := 0; i < sz; i++ {
 			wg.Add(1)
@@ -269,7 +283,7 @@ func TestConcurrentPut(t *testing.T) {
 		wg.Wait()
 
 		for _, d := range words[:(len(words)/sz)*sz] {
-			assert.Equal(d, art.get(d))
+			assert.Equal(d, art.Get(d))
 		}
 	}
 }
@@ -281,7 +295,7 @@ func TestConcurrentDelete(t *testing.T) {
 
 	deleteRng := words[:len(words)/5*4]
 	for count := 0; count < 10; count++ {
-		art := NewART()
+		art := newART(t)
 		for _, d := range words {
 			art.Put(d, d)
 		}
@@ -303,7 +317,7 @@ func TestConcurrentDelete(t *testing.T) {
 		wg.Wait()
 
 		for i, d := range words {
-			v := art.get(d)
+			v := art.Get(d)
 			if i >= (len(deleteRng)/sz)*sz {
 				assert.Equal(d, v)
 			} else {
@@ -320,7 +334,7 @@ func TestConcurrentPutWithGet(t *testing.T) {
 
 	for count := 0; count < 10; count++ {
 		var wg, start sync.WaitGroup
-		art := NewART()
+		art := newART(t)
 		start.Add(1)
 		for i := 0; i < sz; i++ {
 			wg.Add(1)
@@ -329,7 +343,7 @@ func TestConcurrentPutWithGet(t *testing.T) {
 				b, e := (len(words)/sz)*i, (len(words)/sz)*(i+1)
 				for _, d := range words[b:e] {
 					art.Put(d, d)
-					assert.Equal(d, art.get(d))
+					assert.Equal(d, art.Get(d))
 				}
 				wg.Done()
 			}(i)
@@ -338,7 +352,7 @@ func TestConcurrentPutWithGet(t *testing.T) {
 		wg.Wait()
 
 		for _, d := range words[:(len(words)/sz)*sz] {
-			assert.Equal(d, art.get(d))
+			assert.Equal(d, art.Get(d))
 		}
 	}
 }
@@ -389,7 +403,7 @@ func benchGet(file string, b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		for _, d := range data {
-			art.get(d)
+			art.Get(d)
 		}
 	}
 }
