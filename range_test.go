@@ -14,7 +14,7 @@ import (
 func newARTWithKeys(keys ...string) *ART {
 	art := NewART()
 	for _, k := range keys {
-		art.Put([]byte(k), k)
+		art.Put([]byte(k), []byte(k))
 	}
 	return art
 }
@@ -34,8 +34,8 @@ func TestSimplePrefix(t *testing.T) {
 	)
 
 	result := make([]string, 0, 5)
-	art.Prefix([]byte("ab"), func(key []byte, value interface{}) bool {
-		result = append(result, value.(string))
+	art.Prefix([]byte("ab"), func(key []byte, value []byte) bool {
+		result = append(result, string(value))
 		return false
 	})
 	except := []string{"ab", "abc", "abcd", "abe", "aberadasdad"}
@@ -56,8 +56,8 @@ func TestLongPrefix(t *testing.T) {
 	)
 
 	result := make([]string, 0, 3)
-	art.Prefix([]byte("absdwqbsbdbfb"), func(key []byte, value interface{}) bool {
-		result = append(result, value.(string))
+	art.Prefix([]byte("absdwqbsbdbfb"), func(key []byte, value []byte) bool {
+		result = append(result, string(value))
 		return false
 	})
 	except := []string{"absdwqbsbdbfbabfbqi21234", "absdwqbsbdbfbbbfaqi21334", "absdwqbsbdbfbbbfbqi11234"}
@@ -82,8 +82,8 @@ func TestSimpleRange(t *testing.T) {
 	)
 
 	result := make([]string, 0, 8)
-	art.Range([]byte("1234"), []byte("33"), true, true, func(key []byte, value interface{}) bool {
-		result = append(result, value.(string))
+	art.Range([]byte("1234"), []byte("33"), true, true, func(key []byte, value []byte) bool {
+		result = append(result, string(value))
 		return false
 	})
 	assert.Len(result, 8)
@@ -98,8 +98,8 @@ func TestSimpleRange(t *testing.T) {
 	assert.Equal("333", maxV)
 
 	result = result[:0]
-	art.RangeTop(4, []byte("1234"), []byte("33"), true, true, func(key []byte, value interface{}) bool {
-		result = append(result, value.(string))
+	art.RangeTop(4, []byte("1234"), []byte("33"), true, true, func(key []byte, value []byte) bool {
+		result = append(result, string(value))
 		return false
 	})
 	except = []string{"1234", "12345", "123456", "234556"}
@@ -119,8 +119,8 @@ func TestLongBeginAndEnd(t *testing.T) {
 	)
 
 	var result []string
-	art.Range([]byte("12345"), []byte("12367"), true, false, func(key []byte, value interface{}) bool {
-		result = append(result, value.(string))
+	art.Range([]byte("12345"), []byte("12367"), true, false, func(key []byte, value []byte) bool {
+		result = append(result, string(value))
 		return false
 	})
 	except := []string{"1235", "1236"}
@@ -144,7 +144,7 @@ func TestLargeRange(t *testing.T) {
 
 	var result [][]byte
 	b, e := len(keys)/500, len(keys)/10*8
-	art.Range(keys[b], keys[e], true, false, func(key []byte, _ interface{}) bool {
+	art.Range(keys[b], keys[e], true, false, func(key []byte, _ []byte) bool {
 		result = append(result, key)
 		return false
 	})
@@ -186,7 +186,7 @@ func TestConcurrentPutAndRange(t *testing.T) {
 
 	start.Done()
 	var result [][]byte
-	art.Range(mustExist[0], mustExist[pivot-1], true, true, func(key []byte, value interface{}) bool {
+	art.Range(mustExist[0], mustExist[pivot-1], true, true, func(key []byte, value []byte) bool {
 		result = append(result, key)
 		return false
 	})

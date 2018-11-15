@@ -46,7 +46,7 @@ func (it *iterator) isIncludeBegin() bool {
 }
 
 func (it *iterator) setTopKOp(f OpFunc) {
-	it.f = func(key []byte, value interface{}) bool {
+	it.f = func(key []byte, value []byte) bool {
 		it.k--
 		if f(key, value) {
 			return true
@@ -348,7 +348,7 @@ func (n *node) firstChild() *node {
 	panic("opt-art: unreachable code.")
 }
 
-func (n *node) minimalOpt(parent *node, parentVersion uint64) ([]byte, interface{}, bool) {
+func (n *node) minimalOpt(parent *node, parentVersion uint64) ([]byte, []byte, bool) {
 	var (
 		version uint64
 		ok      bool
@@ -424,7 +424,7 @@ func (n *node) lastChild() *node {
 	panic("opt-art: unreachable code.")
 }
 
-func (n *node) maximalOpt(parent *node, parentVersion uint64) ([]byte, interface{}, bool) {
+func (n *node) maximalOpt(parent *node, parentVersion uint64) ([]byte, []byte, bool) {
 	var (
 		version uint64
 		ok      bool

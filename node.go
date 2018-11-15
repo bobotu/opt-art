@@ -123,10 +123,10 @@ func newNode256() *node256 {
 type leaf struct {
 	nodeType uint8
 	key      []byte
-	value    interface{}
+	value    []byte
 }
 
-func newLeaf(key []byte, value interface{}) *leaf {
+func newLeaf(key []byte, value []byte) *leaf {
 	l := &leaf{
 		nodeType: typeLeaf,
 		key:      key,

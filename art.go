@@ -18,7 +18,7 @@ type ART struct {
 
 // OpFunc is ART query callback function.
 // If OpFunc return true the current query will terminate immediately.
-type OpFunc func(key []byte, value interface{}) (end bool)
+type OpFunc func(key []byte, value []byte) (end bool)
 
 // NewART create a new empty ART.
 func NewART() *ART {
@@ -29,7 +29,7 @@ func NewART() *ART {
 
 // Get lookup this tree, and return the value associate with the given key.
 // This operation is thread safe.
-func (t *ART) Get(key []byte) (interface{}, bool) {
+func (t *ART) Get(key []byte) ([]byte, bool) {
 	for {
 		n := (*node)(atomic.LoadPointer(&t.root))
 		if value, ex, ok := n.searchOpt(key, 0, nil, 0); ok {
@@ -40,7 +40,7 @@ func (t *ART) Get(key []byte) (interface{}, bool) {
 
 // Put put the given key and value into this tree, or replace exist key's value.
 // This operation is thread safe.
-func (t *ART) Put(key []byte, value interface{}) {
+func (t *ART) Put(key []byte, value []byte) {
 	for {
 		n := (*node)(atomic.LoadPointer(&t.root))
 		if n.insertOpt(key, value, 0, nil, 0, &t.root) {
@@ -110,7 +110,7 @@ func (t *ART) RangeTop(k int, begin, end []byte, includeBegin, includeEnd bool, 
 
 // Min return the minimal key and it's value in this tree.
 // This operation is thread safe.
-func (t *ART) Min() ([]byte, interface{}) {
+func (t *ART) Min() ([]byte, []byte) {
 	for {
 		n := (*node)(atomic.LoadPointer(&t.root))
 		if k, v, ok := n.minimalOpt(nil, 0); ok {
@@ -121,7 +121,7 @@ func (t *ART) Min() ([]byte, interface{}) {
 
 // Max return the maximal key and it's value in this tree.
 // This operation is thread safe.
-func (t *ART) Max() ([]byte, interface{}) {
+func (t *ART) Max() ([]byte, []byte) {
 	for {
 		n := (*node)(atomic.LoadPointer(&t.root))
 		if k, v, ok := n.maximalOpt(nil, 0); ok {

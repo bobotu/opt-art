@@ -127,7 +127,7 @@ func min(a, b int) int {
 	return b
 }
 
-func (l *leaf) updateOrExpand(key []byte, value interface{}, depth int, nodeLoc *unsafe.Pointer) {
+func (l *leaf) updateOrExpand(key []byte, value []byte, depth int, nodeLoc *unsafe.Pointer) {
 	if l.match(key) {
 		l.value = value
 		return
@@ -158,7 +158,7 @@ func (l *leaf) updateOrExpand(key []byte, value interface{}, depth int, nodeLoc 
 	atomic.StorePointer(nodeLoc, unsafe.Pointer(newNode))
 }
 
-func (n *node) updatePrefixLeaf(key []byte, value interface{}) {
+func (n *node) updatePrefixLeaf(key []byte, value []byte) {
 	l := (*leaf)(n.prefixLeaf)
 	if l == nil {
 		atomic.StorePointer(&n.prefixLeaf, unsafe.Pointer(newLeaf(key, value)))

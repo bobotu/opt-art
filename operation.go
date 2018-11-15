@@ -52,7 +52,7 @@ func (n *node) findChild(key byte) (child *node, nodeLoc *unsafe.Pointer, positi
 	return nil, nil, 0
 }
 
-func (n *node) searchOpt(key []byte, depth int, parent *node, parentVersion uint64) (interface{}, bool, bool) {
+func (n *node) searchOpt(key []byte, depth int, parent *node, parentVersion uint64) ([]byte, bool, bool) {
 	var (
 		version uint64
 		ok      bool
@@ -77,7 +77,7 @@ RECUR:
 	if depth == len(key) {
 		l := (*leaf)(atomic.LoadPointer(&n.prefixLeaf))
 		var (
-			value interface{}
+			value []byte
 			ex    bool
 		)
 		if l != nil && l.match(key) {
@@ -109,7 +109,7 @@ RECUR:
 	if nextNode.nodeType == typeLeaf {
 		l := (*leaf)(unsafe.Pointer(nextNode))
 		var (
-			value interface{}
+			value []byte
 			ex    bool
 		)
 		if l.match(key) {
@@ -129,7 +129,7 @@ RECUR:
 	goto RECUR
 }
 
-func (n *node) insertSplitPrefix(key, fullKey []byte, value interface{}, depth int, prefixLen int, nodeLoc *unsafe.Pointer) {
+func (n *node) insertSplitPrefix(key, fullKey []byte, value []byte, depth int, prefixLen int, nodeLoc *unsafe.Pointer) {
 	newNode := newNode4()
 	if depth := depth + prefixLen; len(key) == depth {
 		newNode.prefixLeaf = unsafe.Pointer(newLeaf(key, value))
@@ -208,7 +208,7 @@ func (n *node) prefixMismatch(key []byte, depth int, parent *node, version, pare
 	return i - depth, fullKey, true
 }
 
-func (n *node) insertOpt(key []byte, value interface{}, depth int, parent *node, parentVersion uint64, nodeLoc *unsafe.Pointer) bool {
+func (n *node) insertOpt(key []byte, value []byte, depth int, parent *node, parentVersion uint64, nodeLoc *unsafe.Pointer) bool {
 	var (
 		version  uint64
 		ok       bool
